@@ -50,8 +50,8 @@ An advanced AI-powered blogging agent that automates the process of researching,
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ai-blogger-agent.git
-cd ai-blogger-agent/backend
+git clone https://github.com/Dues-ExMachina/Ai-Blogger-Agent
+cd Ai-Blogger-Agent/backend
 
 # Create a virtual environment
 python -m venv .venv

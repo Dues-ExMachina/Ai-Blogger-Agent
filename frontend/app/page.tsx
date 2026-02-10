@@ -19,7 +19,7 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto py-10 max-w-5xl">
       <div className="flex flex-col items-center mb-10 text-center space-y-4">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl bg-linear-to-r from-cyan-500 via-blue-600 to-purple-600 bg-clip-text text-transparent animate-gradient pb-2">
           AI Blog Writer Agent
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl">
