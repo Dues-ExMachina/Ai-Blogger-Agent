@@ -1,0 +1,22 @@
+# Common
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+
+# Frontend
+.next/
+build/
+dist/
+coverage/
+.vercel/
+*.tsbuildinfo
+
+# Backend
+backend/generated_posts/
+generated_posts/
+*.egg-info/
+wheels/
