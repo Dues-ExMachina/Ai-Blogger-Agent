@@ -1,17 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
 from typing import List, Optional
 import os
 import json
 import asyncio
-from pathlib import Path
-from datetime import date
+from datetime import date, datetime
 
-# Import the LangGraph app
+# Import the LangGraph app and Supabase storage
 from main import app as graph_app
+import supabase_storage
 
 app = FastAPI(title="Blog Writing Agent API")
 
@@ -29,17 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Constants
-GENERATED_POSTS_DIR = Path("generated_posts")
-IMAGES_DIR = GENERATED_POSTS_DIR / "images"
-
-# Ensure directories exist
-GENERATED_POSTS_DIR.mkdir(exist_ok=True, parents=True)
-IMAGES_DIR.mkdir(exist_ok=True, parents=True)
-
-# Mount images directory to serve static files
-app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
-
 
 class GenerateRequest(BaseModel):
     topic: str
@@ -54,43 +42,51 @@ class BlogPost(BaseModel):
 
 @app.get("/posts", response_model=List[BlogPost])
 async def list_posts():
-    """List all generated blog posts."""
-    posts = []
-    if not GENERATED_POSTS_DIR.exists():
-        return []
+    """List all generated blog posts from Supabase."""
+    try:
+        # Get list of blog posts from Supabase
+        files = supabase_storage.list_blog_posts()
+        posts = []
         
-    for p in GENERATED_POSTS_DIR.glob("*.md"):
-        if p.is_file():
-            # Basic metadata extraction
-            try:
-                content = p.read_text(encoding="utf-8")
+        for file in files:
+            filename = file["name"]
+            # Get the markdown content to extract title and preview
+            content = supabase_storage.get_blog_post(filename)
+            
+            if content:
                 lines = content.splitlines()
-                title = p.stem
+                title = filename.replace(".md", "").replace("-", " ").title()
+                
+                # Extract title from first line if it's a heading
                 if lines and lines[0].startswith("# "):
                     title = lines[0][2:].strip()
                 
+                # Parse created_at timestamp
+                created_at = datetime.fromisoformat(file["created_at"].replace("Z", "+00:00")).timestamp() if file.get("created_at") else 0
+                
                 posts.append({
-                    "filename": p.name,
+                    "filename": filename,
                     "title": title,
-                    "created_at": p.stat().st_mtime,
+                    "created_at": created_at,
                     "preview": content[:200] + "..." if len(content) > 200 else content
                 })
-            except Exception as e:
-                print(f"Error reading file {p}: {e}")
-                continue
-                
-    # Sort by creation time (newest first)
-    posts.sort(key=lambda x: x["created_at"], reverse=True)
-    return posts
+        
+        # Sort by creation time (newest first)
+        posts.sort(key=lambda x: x["created_at"], reverse=True)
+        return posts
+    except Exception as e:
+        print(f"Error listing posts: {e}")
+        return []
 
 @app.get("/posts/{filename}")
 async def get_post(filename: str):
-    """Get the content of a specific blog post."""
-    file_path = GENERATED_POSTS_DIR / filename
-    if not file_path.exists():
+    """Get the content of a specific blog post from Supabase."""
+    content = supabase_storage.get_blog_post(filename)
+    
+    if not content:
         raise HTTPException(status_code=404, detail="Post not found")
-        
-    return FileResponse(file_path)
+    
+    return Response(content=content, media_type="text/markdown")
 
 @app.post("/generate")
 async def generate_blog(request: GenerateRequest):

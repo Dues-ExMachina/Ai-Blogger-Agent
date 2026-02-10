@@ -20,6 +20,9 @@ from dotenv import load_dotenv
 import requests
 import base64
 
+# Import Supabase storage helper
+import supabase_storage
+
 load_dotenv()
 
 # ============================================================
@@ -650,65 +653,60 @@ def generate_and_place_images(state: State) -> dict:
                 md = md.replace(placeholder, f"*[Image: {spec.get('caption', 'Illustration')}]*")
         
         filename = f"{_safe_slug(plan.blog_title)}.md"
-        Path(filename).write_text(md, encoding="utf-8")
+        # Upload markdown to Supabase
+        supabase_storage.upload_markdown(md, filename)
         return {"final": md}
 
-    images_dir = Path("generated_posts/images")
-    images_dir.mkdir(parents=True, exist_ok=True)
-    
     print(f"🖼️  Generating images using: {IMAGE_PROVIDER}")
 
     for spec in image_specs:
         placeholder = spec["placeholder"]
         filename = spec["filename"]
-        out_path = images_dir / filename
 
-        # generate only if needed
-        if not out_path.exists():
-            try:
-                # Select provider based on IMAGE_PROVIDER env variable
-                if IMAGE_PROVIDER == "huggingface":
+        try:
+            # Select provider based on IMAGE_PROVIDER env variable
+            if IMAGE_PROVIDER == "huggingface":
+                img_bytes = _huggingface_generate_image_bytes(spec["prompt"])
+            elif IMAGE_PROVIDER == "pollinations":
+                img_bytes = _pollinations_generate_image_bytes(spec["prompt"])
+            elif IMAGE_PROVIDER == "nvidia":
+                img_bytes = _nvidia_generate_image_bytes(spec["prompt"])
+            else:
+                # Default to HuggingFace with Pollinations fallback
+                try:
                     img_bytes = _huggingface_generate_image_bytes(spec["prompt"])
-                elif IMAGE_PROVIDER == "pollinations":
-                    img_bytes = _pollinations_generate_image_bytes(spec["prompt"])
-                elif IMAGE_PROVIDER == "nvidia":
-                    img_bytes = _nvidia_generate_image_bytes(spec["prompt"])
-                else:
-                    # Default to HuggingFace with Pollinations fallback
-                    try:
-                        img_bytes = _huggingface_generate_image_bytes(spec["prompt"])
-                    except RuntimeError as e:
-                        if "HF_API_KEY" in str(e):
-                            print(f"⚠️  HF_API_KEY not set, falling back to Pollinations.ai...")
-                            img_bytes = _pollinations_generate_image_bytes(spec["prompt"])
-                        else:
-                            raise
-                out_path.write_bytes(img_bytes)
-                print(f"  ✅ Generated: {filename}")
-            except Exception as e:
-                # graceful fallback: keep doc usable
-                prompt_block = (
-                    f"> **[IMAGE GENERATION FAILED]** {spec.get('caption','')}\n>\n"
-                    f"> **Alt:** {spec.get('alt','')}\n>\n"
-                    f"> **Prompt:** {spec.get('prompt','')}\n>\n"
-                    f"> **Error:** {e}\n"
-                )
-                md = md.replace(placeholder, prompt_block)
-                continue
+                except RuntimeError as e:
+                    if "HF_API_KEY" in str(e):
+                        print(f"⚠️  HF_API_KEY not set, falling back to Pollinations.ai...")
+                        img_bytes = _pollinations_generate_image_bytes(spec["prompt"])
+                    else:
+                        raise
+            
+            # Upload image to Supabase and get public URL
+            public_url = supabase_storage.upload_image(img_bytes, filename)
+            print(f"  ✅ Generated and uploaded: {filename}")
+            
+            # Use Supabase public URL in markdown
+            img_md = f"![{spec['alt']}]({public_url})\n*{spec['caption']}*"
+            md = md.replace(placeholder, img_md)
+            
+        except Exception as e:
+            # graceful fallback: keep doc usable
+            prompt_block = (
+                f"> **[IMAGE GENERATION FAILED]** {spec.get('caption','')}\n>\n"
+                f"> **Alt:** {spec.get('alt','')}\n>\n"
+                f"> **Prompt:** {spec.get('prompt','')}\n>\n"
+                f"> **Error:** {e}\n"
+            )
+            md = md.replace(placeholder, prompt_block)
+            continue
 
-        # Use relative path for usage in markdown so it works when served
-        # We'll serve `generated_posts/` as static root or similar, so let's keep it relative to the MD file
-        # If MD is in `generated_posts/`, images are in `images/`, so `images/filename` is correct.
-        img_md = f"![{spec['alt']}](images/{filename})\n*{spec['caption']}*"
-        md = md.replace(placeholder, img_md)
-
-    # Save the markdown file to generated_posts/
-    output_dir = Path("generated_posts")
-    output_dir.mkdir(exist_ok=True)
+    # Upload final markdown to Supabase
     filename = f"{_safe_slug(plan.blog_title)}.md"
-    out_file = output_dir / filename
-    out_file.write_text(md, encoding="utf-8")
+    supabase_storage.upload_markdown(md, filename)
+    print(f"📝 Uploaded markdown to Supabase: {filename}")
     return {"final": md}
+
 
 
 
