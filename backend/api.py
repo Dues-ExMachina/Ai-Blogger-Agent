@@ -18,7 +18,12 @@ app = FastAPI(title="Blog Writing Agent API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for dev; restrict in prod
+    allow_origins=[
+        "http://localhost:3000",  # Local development
+        "https://ai-blogger-agent-beryl.vercel.app",  # Vercel production
+        "https://ai-blogger-agent-beryl.vercel.app/",  # With trailing slash
+        "https://*.vercel.app",  # All Vercel preview deployments
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
