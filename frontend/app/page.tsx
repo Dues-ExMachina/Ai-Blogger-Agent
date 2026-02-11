@@ -17,7 +17,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto py-10 max-w-5xl">
+    <div className="container mx-auto py-10 px-4 md:px-8 max-w-5xl">
       <div className="flex flex-col items-center mb-10 text-center space-y-4">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl bg-linear-to-r from-cyan-500 via-blue-600 to-purple-600 bg-clip-text text-transparent animate-gradient pb-2">
           AI Blog Writer Agent
@@ -30,11 +30,11 @@ export default function Dashboard() {
       <Tabs defaultValue="generate" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex justify-center mb-8">
           <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="generate" className="flex items-center gap-2">
+            <TabsTrigger value="generate" className="flex items-center gap-2 cursor-pointer">
               <PenTool className="h-4 w-4" />
               Write New
             </TabsTrigger>
-            <TabsTrigger value="library" className="flex items-center gap-2">
+            <TabsTrigger value="library" className="flex items-center gap-2 cursor-pointer">
               <Library className="h-4 w-4" />
               Past Blogs
             </TabsTrigger>

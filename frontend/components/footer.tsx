@@ -8,8 +8,8 @@ export function Footer() {
 
                 <p className="text-sm text-muted-foreground text-center">
                     Built by{" "}
-                    <span className="font-medium underline underline-offset-4">
-                        Anubhab
+                    <span className="font-medium underline underline-offset-4 cursor-pointer hover:text-primary transition-colors">
+                        <a href="https://www.linkedin.com/in/anubhab-das45/" target="_blank" rel="noreferrer">Anubhab</a>
                     </span>
                 </p>
 

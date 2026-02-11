@@ -33,10 +33,10 @@ export default function DocsPage() {
 
             <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="grid w-full grid-cols-4 mb-8">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="architecture">Architecture</TabsTrigger>
-                    <TabsTrigger value="components">Components</TabsTrigger>
-                    <TabsTrigger value="workflow">Workflow</TabsTrigger>
+                    <TabsTrigger value="overview" className="cursor-pointer">Overview</TabsTrigger>
+                    <TabsTrigger value="architecture" className="cursor-pointer">Architecture</TabsTrigger>
+                    <TabsTrigger value="components" className="cursor-pointer">Components</TabsTrigger>
+                    <TabsTrigger value="workflow" className="cursor-pointer">Workflow</TabsTrigger>
                 </TabsList>
 
                 {/* Overview Tab */}

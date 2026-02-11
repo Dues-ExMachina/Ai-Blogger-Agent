@@ -10,6 +10,10 @@ from typing import List, Dict, Optional, Tuple
 from datetime import datetime
 from supabase import create_client, Client
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Initialize Supabase client
 SUPABASE_URL = os.environ.get("SUPABASE_URL")

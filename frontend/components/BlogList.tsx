@@ -37,7 +37,7 @@ export function BlogList({ keyProp }: { keyProp?: number }) {
                 </Button>
             </CardHeader>
             <CardContent className="flex-1 p-0">
-                <ScrollArea className="h-[600px] px-6 pb-6">
+                <ScrollArea className="h-[600px] px-4 md:px-6 pb-6">
                     <div className="space-y-4">
                         {posts.length === 0 && !loading && (
                             <div className="text-center py-10 text-muted-foreground">
@@ -46,8 +46,8 @@ export function BlogList({ keyProp }: { keyProp?: number }) {
                         )}
 
                         {posts.map((post) => (
-                            <Link key={post.filename} href={`/posts/${post.filename}`} className="block group">
-                                <div className="flex flex-col space-y-2 p-4 border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                            <Link key={post.filename} href={`/posts/${post.filename}`} className="block group cursor-pointer">
+                                <div className="flex flex-col space-y-2 p-4 border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
                                     <div className="flex items-center justify-between">
                                         <h3 className="font-semibold truncate pr-4">{post.title}</h3>
                                         <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
